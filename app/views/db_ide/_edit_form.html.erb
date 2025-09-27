@@ -1,13 +1,21 @@
-<% return unless row.present? && table_name.present? && primary_key.present? %>
+<% return unless table_name.present? && primary_key.present? %>
 
-<%= form_with url: db_ide_update_path, method: :patch, scope: :row, local: true, class: "db-ide__edit-form" do |form| %>
+<% form_url = local_assigns.fetch(:form_url, db_ide_update_path) %>
+<% form_method = local_assigns.fetch(:form_method, :patch) %>
+<% submit_label = local_assigns.fetch(:submit_label, "Save changes") %>
+<% allow_primary_input = local_assigns.fetch(:allow_primary_input, false) %>
+<% show_cancel = local_assigns.fetch(:show_cancel, true) %>
+<% row_data = row || {} %>
+<% primary_value = row_data[primary_key] %>
+
+<%= form_with url: form_url, method: form_method, scope: :row, local: true, class: "db-ide__edit-form" do |form| %>
   <%= hidden_field_tag :table, table_name %>
-  <%= hidden_field_tag :id, row[primary_key] %>
+  <%= hidden_field_tag :id, primary_value %>
 
   <div class="db-ide__edit-grid">
     <% columns_info.each do |column| %>
       <% name = column.name %>
-      <% value = row[name] %>
+      <% value = row_data[name] %>
       <% formatted_value = case value
                            when Time, ActiveSupport::TimeWithZone
                              value.utc.strftime("%Y-%m-%d %H:%M:%S")
@@ -27,8 +35,8 @@
           <% end %>
         </div>
 
-        <% if name == primary_key %>
-          <div class="db-ide__field-readonly"><%= formatted_value %></div>
+        <% if name == primary_key && !allow_primary_input %>
+          <div class="db-ide__field-readonly"><%= formatted_value.presence || "(auto)" %></div>
         <% else %>
           <% input = case column.type
                     when :text
@@ -56,7 +64,9 @@
   </div>
 
   <div class="db-ide__edit-actions">
-    <%= link_to "Cancel", db_ide_path(table: table_name), class: "db-ide__button db-ide__button--ghost" %>
-    <%= form.submit "Save changes", class: "db-ide__button" %>
+    <% if show_cancel %>
+      <%= link_to "Cancel", db_ide_path(table: table_name), class: "db-ide__button db-ide__button--ghost" %>
+    <% end %>
+    <%= form.submit submit_label, class: "db-ide__button" %>
   </div>
 <% end %>

@@ -21,6 +21,26 @@ class DbIdeController < ApplicationController
     render :index
   end
 
+  def create
+    table = params[:table].to_s
+
+    unless table.present? && fetch_tables.include?(table)
+      redirect_to db_ide_path, alert: "Unknown table."
+      return
+    end
+
+    primary_key = primary_key_for(table)
+
+    attributes = permitted_attributes(table, primary_key, include_primary: true)
+    attributes = normalize_attributes(attributes)
+
+    apply_insert(table, attributes)
+
+    redirect_to db_ide_path(table: table), notice: "Row created successfully."
+  rescue ActiveRecord::StatementInvalid => e
+    redirect_to db_ide_path(table: table, new: true), alert: e.message
+  end
+
   def update
     table = params[:table].to_s
 
@@ -44,6 +64,7 @@ class DbIdeController < ApplicationController
     end
 
     attributes = permitted_attributes(table, primary_key)
+    attributes = normalize_attributes(attributes)
 
     if attributes.empty?
       redirect_to db_ide_path(table: table, edit: row_id), alert: "Nothing to update."
@@ -72,8 +93,10 @@ class DbIdeController < ApplicationController
       @table_primary_key = primary_key_for(@selected_table)
       @table_columns_info = columns_info_for(@selected_table)
       @table_result = load_table_rows(@selected_table)
-      @editable_row_id = params[:edit].presence
+      @show_new_form = params[:new].present?
+      @editable_row_id = @show_new_form ? nil : params[:edit].presence
       @editable_row = load_row(@selected_table, @table_primary_key, @editable_row_id)
+      @new_row_template = blank_row(@table_columns_info)
     end
     @query ||= default_query(@selected_table)
   end
@@ -120,13 +143,27 @@ class DbIdeController < ApplicationController
     connection.columns(table_name)
   end
 
-  def permitted_attributes(table_name, primary_key)
+  def blank_row(columns)
+    Array(columns).each_with_object({}) do |column, memo|
+      memo[column.name] = column.default
+    end
+  end
+
+  def permitted_attributes(table_name, primary_key, include_primary: false)
     raw_params = params[:row]
     return {} unless raw_params.is_a?(ActionController::Parameters)
 
     allowed_columns = columns_info_for(table_name).map(&:name)
     permitted = raw_params.permit(*allowed_columns)
-    permitted.to_h.except(primary_key)
+    attributes = permitted.to_h
+    attributes.delete(primary_key) unless include_primary
+    attributes
+  end
+
+  def normalize_attributes(attributes)
+    attributes.transform_values do |value|
+      value.is_a?(String) && value.empty? ? nil : value
+    end
   end
 
   def apply_update(table_name, primary_key, row_id, attributes)
@@ -140,6 +177,23 @@ class DbIdeController < ApplicationController
     end
 
     sql = "UPDATE #{quoted_table} SET #{assignments.join(", ")} WHERE #{quoted_pk} = #{connection.quote(row_id)}"
+    connection.execute(sql)
+  end
+
+  def apply_insert(table_name, attributes)
+    quoted_table = connection.quote_table_name(table_name)
+    sanitized = attributes
+
+    if sanitized.blank?
+      connection.execute("INSERT INTO #{quoted_table} DEFAULT VALUES")
+      return
+    end
+
+    column_names = sanitized.keys
+    quoted_columns = column_names.map { |column| connection.quote_column_name(column) }
+    values = column_names.map { |column| connection.quote(sanitized[column]) }
+
+    sql = "INSERT INTO #{quoted_table} (#{quoted_columns.join(", ")}) VALUES (#{values.join(", ")})"
     connection.execute(sql)
   end
 

@@ -327,14 +327,14 @@
 }
 
 .db-ide__textarea:focus {
-  outline: none;
   border-color: rgba(76, 139, 255, 0.8);
   box-shadow: 0 0 0 4px rgba(76, 139, 255, 0.25);
 }
 
-.db-ide__actions {
+.db-ide__panel-actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.6rem;
 }
 
 .db-ide__alert {
@@ -422,7 +422,7 @@
 }
 
 .db-ide__cell--actions {
-  width: 160px;
+  width: 190px;
   text-align: center;
 }
 
@@ -524,6 +524,11 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.75rem;
+}
+
+.db-ide__panel--accent {
+  background: rgba(104, 176, 255, 0.12);
+  box-shadow: 0 18px 45px rgba(30, 60, 110, 0.25);
 }
 
 @media (max-width: 960px) {

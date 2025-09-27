@@ -46,6 +46,13 @@
           <% end %>
         </div>
         <div class="db-ide__panel-actions">
+          <% if @selected_table.present? %>
+            <% if @show_new_form %>
+              <%= link_to "Close new record", db_ide_path(table: @selected_table), class: "db-ide__button db-ide__button--ghost" %>
+            <% else %>
+              <%= link_to "New record", db_ide_path(table: @selected_table, new: true), class: "db-ide__button" %>
+            <% end %>
+          <% end %>
           <%= link_to "Refresh", db_ide_path(table: @selected_table), class: "db-ide__button db-ide__button--ghost" %>
         </div>
       </header>
@@ -69,6 +76,30 @@
         <% end %>
       </div>
     </section>
+
+    <% if @show_new_form && @selected_table.present? %>
+      <section class="db-ide__panel db-ide__panel--accent" aria-labelledby="new-row-heading">
+        <header class="db-ide__panel-header">
+          <div>
+            <h2 id="new-row-heading">Create new record</h2>
+            <p class="db-ide__meta">Table: <strong><%= @selected_table %></strong></p>
+          </div>
+        </header>
+
+        <div class="db-ide__panel-body">
+          <%= render partial: "edit_form", locals: {
+            table_name: @selected_table,
+            primary_key: @table_primary_key,
+            columns_info: @table_columns_info,
+            row: @new_row_template,
+            form_url: db_ide_create_path,
+            form_method: :post,
+            submit_label: "Create record",
+            allow_primary_input: true
+          } %>
+        </div>
+      </section>
+    <% end %>
 
     <% if @editable_row.present? && @selected_table.present? %>
       <section class="db-ide__panel" aria-labelledby="edit-row-heading">
