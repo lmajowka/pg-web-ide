@@ -78,6 +78,35 @@ class DbIdeController < ApplicationController
     redirect_to db_ide_path(table: table, edit: params[:id]), alert: e.message
   end
 
+  def destroy
+    table = params[:table].to_s
+
+    unless table.present? && fetch_tables.include?(table)
+      redirect_to db_ide_path, alert: "Unknown table."
+      return
+    end
+
+    primary_key = primary_key_for(table)
+
+    unless primary_key
+      redirect_to db_ide_path(table: table), alert: "Deleting is not supported for this table."
+      return
+    end
+
+    row_id = params[:id]
+
+    unless row_id.present?
+      redirect_to db_ide_path(table: table), alert: "Missing row identifier."
+      return
+    end
+
+    apply_delete(table, primary_key, row_id)
+
+    redirect_to db_ide_path(table: table), notice: "Row deleted successfully."
+  rescue ActiveRecord::StatementInvalid => e
+    redirect_to db_ide_path(table: table), alert: e.message
+  end
+
   private
 
   def ensure_development!
@@ -194,6 +223,13 @@ class DbIdeController < ApplicationController
     values = column_names.map { |column| connection.quote(sanitized[column]) }
 
     sql = "INSERT INTO #{quoted_table} (#{quoted_columns.join(", ")}) VALUES (#{values.join(", ")})"
+    connection.execute(sql)
+  end
+
+  def apply_delete(table_name, primary_key, row_id)
+    quoted_table = connection.quote_table_name(table_name)
+    quoted_pk = connection.quote_column_name(primary_key)
+    sql = "DELETE FROM #{quoted_table} WHERE #{quoted_pk} = #{connection.quote(row_id)}"
     connection.execute(sql)
   end
 

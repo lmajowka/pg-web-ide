@@ -15,4 +15,5 @@ Rails.application.routes.draw do
   post "db_ide/execute", to: "db_ide#execute"
   post "db_ide/create", to: "db_ide#create"
   patch "db_ide/update", to: "db_ide#update"
+  delete "db_ide/destroy", to: "db_ide#destroy"
 end

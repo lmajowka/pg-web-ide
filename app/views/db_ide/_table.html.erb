@@ -26,12 +26,20 @@
         <% if editable %>
           <td class="db-ide__cell db-ide__cell--actions">
             <% if row_id.present? %>
-              <% if is_editing %>
-                <span class="db-ide__chip db-ide__chip--active">Editing</span>
-                <%= link_to "Cancel", db_ide_path(table: table_name), class: "db-ide__button db-ide__button--ghost db-ide__button--sm" %>
-              <% else %>
-                <%= link_to "Edit", db_ide_path(table: table_name, edit: row_id), class: "db-ide__chip" %>
-              <% end %>
+              <div class="db-ide__action-stack">
+                <% if is_editing %>
+                  <span class="db-ide__chip db-ide__chip--active">Editing</span>
+                  <%= link_to "Cancel", db_ide_path(table: table_name), class: "db-ide__button db-ide__button--ghost db-ide__button--sm" %>
+                <% else %>
+                  <%= link_to "Edit", db_ide_path(table: table_name, edit: row_id), class: "db-ide__chip" %>
+                <% end %>
+
+                <%= button_to "Delete", db_ide_destroy_path,
+                              method: :delete,
+                              params: { table: table_name, id: row_id },
+                              class: "db-ide__button db-ide__button--danger db-ide__button--sm",
+                              form: { class: "db-ide__inline-form", data: { turbo_confirm: "Delete this row? This action cannot be undone." } } %>
+              </div>
             <% else %>
               <span class="db-ide__cell-muted">—</span>
             <% end %>

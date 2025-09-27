@@ -221,6 +221,15 @@
   font-size: 0.85rem;
 }
 
+.db-ide__button--danger {
+  background: rgba(232, 82, 96, 0.85);
+  box-shadow: 0 12px 24px rgba(232, 82, 96, 0.35);
+}
+
+.db-ide__button--danger:hover {
+  filter: brightness(1.05);
+}
+
 .db-ide__button--ghost:hover {
   filter: none;
   border-color: rgba(255, 255, 255, 0.2);
@@ -424,6 +433,17 @@
 .db-ide__cell--actions {
   width: 190px;
   text-align: center;
+}
+
+.db-ide__action-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.db-ide__inline-form {
+  display: inline;
 }
 
 .db-ide__cell-muted {
