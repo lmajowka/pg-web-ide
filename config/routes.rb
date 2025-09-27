@@ -13,4 +13,5 @@ Rails.application.routes.draw do
 
   get "db_ide", to: "db_ide#index"
   post "db_ide/execute", to: "db_ide#execute"
+  patch "db_ide/update", to: "db_ide#update"
 end

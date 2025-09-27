@@ -1,23 +1,58 @@
-<% if result.is_a?(ActiveRecord::Result) %>
-  <table class="db-ide__table">
-    <thead>
-      <tr>
+<% unless result.is_a?(ActiveRecord::Result) %>
+  <pre><%= result.inspect %></pre>
+  <% return %>
+<% end %>
+
+<% editable = defined?(table_name) && primary_key.present? %>
+
+<table class="db-ide__table">
+  <thead>
+    <tr>
+      <% if editable %>
+        <th class="db-ide__table-header db-ide__table-header--actions">Actions</th>
+      <% end %>
+      <% result.columns.each do |column| %>
+        <th><%= column %></th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% result.rows.each do |row_values| %>
+      <% row_hash = result.columns.zip(row_values).to_h %>
+      <% row_id = editable ? row_hash[primary_key] : nil %>
+      <% is_editing = editable && editable_row_id.present? && row_id.present? && row_id.to_s == editable_row_id.to_s %>
+
+      <tr class="<%= "db-ide__row--active" if is_editing %>">
+        <% if editable %>
+          <td class="db-ide__cell db-ide__cell--actions">
+            <% if row_id.present? %>
+              <% if is_editing %>
+                <span class="db-ide__chip db-ide__chip--active">Editing</span>
+                <%= link_to "Cancel", db_ide_path(table: table_name), class: "db-ide__button db-ide__button--ghost db-ide__button--sm" %>
+              <% else %>
+                <%= link_to "Edit", db_ide_path(table: table_name, edit: row_id), class: "db-ide__chip" %>
+              <% end %>
+            <% else %>
+              <span class="db-ide__cell-muted">—</span>
+            <% end %>
+          </td>
+        <% end %>
+
         <% result.columns.each do |column| %>
-          <th><%= column %></th>
+          <% value = row_hash[column] %>
+          <% display_value = case value
+                            when Time, ActiveSupport::TimeWithZone
+                              value.utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+                            else
+                              value
+                            end %>
+          <td class="db-ide__cell">
+            <%= display_value.presence || "—" %>
+          </td>
         <% end %>
       </tr>
-    </thead>
-    <tbody>
-      <% result.rows.each do |row| %>
-        <tr>
-          <% row.each do |cell| %>
-            <td><%= cell %></td>
-          <% end %>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
-  <p class="db-ide__table-meta">Rows: <%= result.rows.size %></p>
-<% else %>
-  <pre><%= result.inspect %></pre>
-<% end %>
+    <% end %>
+  </tbody>
+</table>
+
+<p class="db-ide__table-meta">Rows: <%= result.rows.size %></p>

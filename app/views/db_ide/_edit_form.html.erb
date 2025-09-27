@@ -1,0 +1,62 @@
+<% return unless row.present? && table_name.present? && primary_key.present? %>
+
+<%= form_with url: db_ide_update_path, method: :patch, scope: :row, local: true, class: "db-ide__edit-form" do |form| %>
+  <%= hidden_field_tag :table, table_name %>
+  <%= hidden_field_tag :id, row[primary_key] %>
+
+  <div class="db-ide__edit-grid">
+    <% columns_info.each do |column| %>
+      <% name = column.name %>
+      <% value = row[name] %>
+      <% formatted_value = case value
+                           when Time, ActiveSupport::TimeWithZone
+                             value.utc.strftime("%Y-%m-%d %H:%M:%S")
+                           when Date
+                             value.iso8601
+                           else
+                             value
+                           end %>
+
+      <div class="db-ide__field">
+        <div class="db-ide__field-header">
+          <label class="db-ide__field-label" for="row_<%= name %>"><%= name %></label>
+          <% if name == primary_key %>
+            <span class="db-ide__badge">Primary key</span>
+          <% else %>
+            <span class="db-ide__field-hint"><%= column.sql_type %></span>
+          <% end %>
+        </div>
+
+        <% if name == primary_key %>
+          <div class="db-ide__field-readonly"><%= formatted_value %></div>
+        <% else %>
+          <% input = case column.type
+                    when :text
+                      form.text_area(name, value: formatted_value, rows: 3, class: "db-ide__field-input db-ide__field-input--textarea")
+                    when :boolean
+                      form.select(name,
+                                  options_for_select([["true", "true"], ["false", "false"]], formatted_value.to_s.presence),
+                                  { include_blank: true },
+                                  class: "db-ide__field-input db-ide__field-input--select")
+                    when :integer, :float, :decimal
+                      form.number_field(name, value: formatted_value, step: :any, class: "db-ide__field-input")
+                    when :date
+                      form.date_field(name, value: formatted_value, class: "db-ide__field-input")
+                    when :datetime, :timestamp
+                      form.datetime_field(name, value: formatted_value.present? ? formatted_value.gsub(" ", "T") : nil, class: "db-ide__field-input")
+                    when :time
+                      form.time_field(name, value: formatted_value, class: "db-ide__field-input")
+                    else
+                      form.text_field(name, value: formatted_value, class: "db-ide__field-input")
+                    end %>
+          <%= input %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="db-ide__edit-actions">
+    <%= link_to "Cancel", db_ide_path(table: table_name), class: "db-ide__button db-ide__button--ghost" %>
+    <%= form.submit "Save changes", class: "db-ide__button" %>
+  </div>
+<% end %>
