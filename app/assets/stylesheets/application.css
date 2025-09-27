@@ -1,6 +1,7 @@
 * {
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .db-ide__table-wrapper {
@@ -437,8 +438,9 @@
 
 .db-ide__edit-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 1.1rem;
+  width: 100%;
 }
 
 .db-ide__field {
@@ -449,6 +451,7 @@
   border-radius: 16px;
   background: rgba(12, 18, 34, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 0;
 }
 
 .db-ide__field-header {
@@ -484,6 +487,8 @@
   background: rgba(30, 36, 56, 0.9);
   border: 1px solid rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.75);
+  width: 100%;
+  word-break: break-word;
 }
 
 .db-ide__field-input {
@@ -496,6 +501,8 @@
   font-size: 0.95rem;
   font-family: inherit;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  min-width: 0;
+  word-break: break-word;
 }
 
 .db-ide__field-input:focus {
@@ -544,5 +551,9 @@
   .db-ide__panel-actions {
     display: flex;
     justify-content: flex-end;
+  }
+
+  .db-ide__edit-grid {
+    grid-template-columns: 1fr;
   }
 }
