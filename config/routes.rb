@@ -9,6 +9,8 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
-  # Defines the root path route ("/")
-  # root "posts#index"
+  root "db_ide#index"
+
+  get "db_ide", to: "db_ide#index"
+  post "db_ide/execute", to: "db_ide#execute"
 end

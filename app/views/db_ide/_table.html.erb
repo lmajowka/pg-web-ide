@@ -1,0 +1,23 @@
+<% if result.is_a?(ActiveRecord::Result) %>
+  <table class="db-ide__table">
+    <thead>
+      <tr>
+        <% result.columns.each do |column| %>
+          <th><%= column %></th>
+        <% end %>
+      </tr>
+    </thead>
+    <tbody>
+      <% result.rows.each do |row| %>
+        <tr>
+          <% row.each do |cell| %>
+            <td><%= cell %></td>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <p class="db-ide__table-meta">Rows: <%= result.rows.size %></p>
+<% else %>
+  <pre><%= result.inspect %></pre>
+<% end %>

@@ -8,3 +8,89 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+.db-ide {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.db-ide__sidebar {
+  flex: 0 0 220px;
+  border-right: 1px solid #ddd;
+  padding-right: 1rem;
+}
+
+.db-ide__sidebar h1 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.db-ide__sidebar select {
+  width: 100%;
+  padding: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.db-ide__content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.db-ide__panel {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #fafafa;
+}
+
+.db-ide__panel h2 {
+  margin-top: 0;
+}
+
+.db-ide__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.db-ide__table th,
+.db-ide__table td {
+  border: 1px solid #ddd;
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+}
+
+.db-ide__table th {
+  background: #f0f0f0;
+}
+
+.db-ide__table-meta {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.db-ide__actions {
+  margin-top: 0.75rem;
+}
+
+.db-ide__error {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-left: 4px solid #c62828;
+  background: #fdecea;
+  color: #5f2120;
+}
+
+.db-ide__error pre {
+  white-space: pre-wrap;
+  margin: 0.5rem 0 0;
+}
+
+.db-ide__result {
+  margin-top: 1rem;
+}

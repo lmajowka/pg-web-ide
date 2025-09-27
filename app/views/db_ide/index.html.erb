@@ -1,0 +1,51 @@
+<div class="db-ide">
+  <section class="db-ide__sidebar">
+    <h1>Database IDE</h1>
+
+    <%= form_with url: db_ide_path, method: :get, local: true do %>
+      <label for="table-select">Tables</label>
+      <select name="table" id="table-select" onchange="this.form.submit()">
+        <% @tables.each do |table| %>
+          <option value="<%= table %>" <%= "selected" if table == @selected_table %>><%= table %></option>
+        <% end %>
+      </select>
+      <noscript>
+        <button type="submit">Load</button>
+      </noscript>
+    <% end %>
+  </section>
+
+  <section class="db-ide__content">
+    <div class="db-ide__panel">
+      <h2>Preview: <%= @selected_table %></h2>
+      <% if @table_result.present? %>
+        <%= render partial: "table", locals: { result: @table_result } %>
+      <% else %>
+        <p>No data available.</p>
+      <% end %>
+    </div>
+
+    <div class="db-ide__panel">
+      <h2>SQL Runner</h2>
+      <%= form_with url: db_ide_execute_path, method: :post, local: true do |form| %>
+        <%= hidden_field_tag :table, @selected_table %>
+        <%= form.label :query, "Query" %>
+        <%= form.text_area :query, value: @query, rows: 6 %>
+        <div class="db-ide__actions">
+          <%= form.submit "Run" %>
+        </div>
+      <% end %>
+
+      <% if @query_error.present? %>
+        <div class="db-ide__error">
+          <strong>Error:</strong>
+          <pre><%= @query_error %></pre>
+        </div>
+      <% elsif @query_result.present? %>
+        <div class="db-ide__result">
+          <%= render partial: "table", locals: { result: @query_result } %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+</div>
