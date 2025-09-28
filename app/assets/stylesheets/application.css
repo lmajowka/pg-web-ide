@@ -236,6 +236,32 @@
   box-shadow: none;
 }
 
+/* Icon-only button variant */
+.db-ide__button--icon {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.db-ide__button--icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Screen reader only helper */
+.db-ide__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .db-ide__content {
   display: flex;
   flex-direction: column;
@@ -431,15 +457,16 @@
 }
 
 .db-ide__cell--actions {
-  width: 190px;
+  width: 140px;
   text-align: center;
 }
 
 .db-ide__action-stack {
   display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
+  flex-direction: row;
+  gap: 0.35rem;
   align-items: center;
+  justify-content: center;
 }
 
 .db-ide__inline-form {
