@@ -130,7 +130,7 @@
       </header>
 
       <div class="db-ide__panel-body">
-        <%= form_with url: db_ide_execute_path, method: :post, local: true, class: "db-ide__form" do |form| %>
+        <%= form_with url: db_ide_execute_path, method: :post, local: true, class: "db-ide__form", data: { turbo: false } do |form| %>
           <%= hidden_field_tag :table, @selected_table %>
           <label for="sql-query" class="db-ide__label">Query</label>
           <%= form.text_area :query, id: "sql-query", value: @query, rows: 8, class: "db-ide__textarea" %>
