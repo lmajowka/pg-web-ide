@@ -20,17 +20,17 @@
         <p><%= pluralize(@tables.size, "table") %></p>
       </header>
 
-      <%= form_with url: db_ide_path, method: :get, local: true, class: "db-ide__table-picker" do %>
-        <label for="table-select" class="db-ide__label">Choose table</label>
-        <select name="table" id="table-select" class="db-ide__select" onchange="this.form.submit()">
-          <% @tables.each do |table| %>
-            <option value="<%= table %>" <%= "selected" if table == @selected_table %>><%= table %></option>
-          <% end %>
-        </select>
-        <noscript>
-          <button type="submit" class="db-ide__button">Load</button>
-        </noscript>
-      <% end %>
+      <ul class="db-ide__table-list">
+        <% @tables.each do |table| %>
+          <% active = table == @selected_table %>
+          <li>
+            <%= link_to table,
+                        db_ide_path(table: table),
+                        class: "db-ide__chip#{" db-ide__chip--active" if active}",
+                        aria_current: (active ? "page" : nil) %>
+          </li>
+        <% end %>
+      </ul>
     </section>
   </aside>
 

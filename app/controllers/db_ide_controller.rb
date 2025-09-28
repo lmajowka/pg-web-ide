@@ -116,7 +116,7 @@ class DbIdeController < ApplicationController
   end
 
   def prepare_state
-    @tables = fetch_tables
+    @tables = fetch_tables.sort
     @selected_table = params[:table].presence || @tables.first
     if @selected_table
       @table_primary_key = primary_key_for(@selected_table)
