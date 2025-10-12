@@ -131,7 +131,8 @@ class DbIdeController < ApplicationController
   end
 
   def fetch_tables
-    connection.tables.reject { |name| name.start_with?("pg_") || name == "schema_migrations" }
+    connection.tables
+    #.reject { |name| name.start_with?("pg_") || name == "schema_migrations" }
   end
 
   def load_table_rows(table_name)
