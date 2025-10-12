@@ -461,6 +461,44 @@
   color: rgba(255, 255, 255, 0.65);
 }
 
+.db-ide__table-header--sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+}
+
+.db-ide__table-header--sortable:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.db-ide__table-header--sorted {
+  color: rgba(130, 164, 255, 0.95);
+}
+
+.db-ide__sort-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: inherit;
+  text-decoration: none;
+  width: 100%;
+}
+
+.db-ide__sort-link:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.db-ide__sort-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  color: rgba(130, 164, 255, 0.85);
+}
+
+.db-ide__sort-icon--inactive {
+  opacity: 0.35;
+}
+
 .db-ide__table-meta {
   margin-top: 0.7rem;
   font-size: 0.8rem;

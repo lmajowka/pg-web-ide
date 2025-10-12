@@ -121,7 +121,9 @@ class DbIdeController < ApplicationController
     if @selected_table
       @table_primary_key = primary_key_for(@selected_table)
       @table_columns_info = columns_info_for(@selected_table)
-      @table_result = load_table_rows(@selected_table)
+      @sort_column = params[:sort].presence
+      @sort_direction = params[:direction].presence&.downcase == "desc" ? "desc" : "asc"
+      @table_result = load_table_rows(@selected_table, @sort_column, @sort_direction)
       @show_new_form = params[:new].present?
       @editable_row_id = @show_new_form ? nil : params[:edit].presence
       @editable_row = load_row(@selected_table, @table_primary_key, @editable_row_id)
@@ -135,11 +137,20 @@ class DbIdeController < ApplicationController
     #.reject { |name| name.start_with?("pg_") || name == "schema_migrations" }
   end
 
-  def load_table_rows(table_name)
+  def load_table_rows(table_name, sort_column = nil, sort_direction = "asc")
     return unless table_name
 
-    quoted = connection.quote_table_name(table_name)
-    connection.exec_query("SELECT * FROM #{quoted} LIMIT #{MAX_ROWS}")
+    quoted_table = connection.quote_table_name(table_name)
+    sql = "SELECT * FROM #{quoted_table}"
+    
+    if sort_column.present? && valid_column?(table_name, sort_column)
+      quoted_column = connection.quote_column_name(sort_column)
+      direction = sort_direction == "desc" ? "DESC" : "ASC"
+      sql += " ORDER BY #{quoted_column} #{direction}"
+    end
+    
+    sql += " LIMIT #{MAX_ROWS}"
+    connection.exec_query(sql)
   end
 
   def load_row(table_name, primary_key, row_id)
@@ -232,6 +243,12 @@ class DbIdeController < ApplicationController
     quoted_pk = connection.quote_column_name(primary_key)
     sql = "DELETE FROM #{quoted_table} WHERE #{quoted_pk} = #{connection.quote(row_id)}"
     connection.execute(sql)
+  end
+
+  def valid_column?(table_name, column_name)
+    return false unless table_name && column_name
+    
+    columns_info_for(table_name).any? { |col| col.name == column_name }
   end
 
   def connection

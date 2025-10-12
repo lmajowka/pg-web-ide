@@ -12,7 +12,35 @@
         <th class="db-ide__table-header db-ide__table-header--actions">Actions</th>
       <% end %>
       <% result.columns.each do |column| %>
-        <th><%= column %></th>
+        <% 
+          is_sorted = defined?(sort_column) && sort_column == column
+          is_desc = defined?(sort_direction) && sort_direction == "desc"
+          next_direction = is_sorted && !is_desc ? "desc" : "asc"
+          sort_params = { table: table_name, sort: column, direction: next_direction }
+          sort_params[:edit] = editable_row_id if defined?(editable_row_id) && editable_row_id.present?
+        %>
+        <th class="db-ide__table-header <%= "db-ide__table-header--sortable" if defined?(table_name) %> <%= "db-ide__table-header--sorted" if is_sorted %>">
+          <% if defined?(table_name) %>
+            <%= link_to db_ide_path(sort_params), class: "db-ide__sort-link" do %>
+              <span><%= column %></span>
+              <% if is_sorted %>
+                <svg class="db-ide__sort-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <% if is_desc %>
+                    <path d="M7 10l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <% else %>
+                    <path d="M7 14l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <% end %>
+                </svg>
+              <% else %>
+                <svg class="db-ide__sort-icon db-ide__sort-icon--inactive" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M7 10l5-5 5 5M7 14l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              <% end %>
+            <% end %>
+          <% else %>
+            <%= column %>
+          <% end %>
+        </th>
       <% end %>
     </tr>
   </thead>
