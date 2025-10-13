@@ -16,8 +16,10 @@
           is_sorted = defined?(sort_column) && sort_column == column
           is_desc = defined?(sort_direction) && sort_direction == "desc"
           next_direction = is_sorted && !is_desc ? "desc" : "asc"
-          sort_params = { table: table_name, sort: column, direction: next_direction }
-          sort_params[:edit] = editable_row_id if defined?(editable_row_id) && editable_row_id.present?
+          if defined?(table_name)
+            sort_params = { table: table_name, sort: column, direction: next_direction }
+            sort_params[:edit] = editable_row_id if defined?(editable_row_id) && editable_row_id.present?
+          end
         %>
         <th class="db-ide__table-header <%= "db-ide__table-header--sortable" if defined?(table_name) %> <%= "db-ide__table-header--sorted" if is_sorted %>">
           <% if defined?(table_name) %>
