@@ -12,7 +12,7 @@ default: &default
 development:
   primary:
     adapter: postgresql
-    database: <%= ENV.fetch("PG_DB", "myapp_development") %>
+    database: <%= ENV.fetch("PG_DB", "") %>
     username: <%= ENV.fetch("PG_USER", ENV["USER"]) %>
     password: <%= ENV.fetch("PG_PASSWORD", "") %>
     host: <%= ENV.fetch("PG_HOST", "localhost") %>
