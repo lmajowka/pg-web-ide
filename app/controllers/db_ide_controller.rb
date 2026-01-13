@@ -7,6 +7,10 @@ class DbIdeController < ApplicationController
     prepare_state
   end
 
+  def sql_runner
+    @query ||= default_query(nil)
+  end
+
   def execute
     prepare_state
     @query = params[:query].to_s
@@ -19,6 +23,19 @@ class DbIdeController < ApplicationController
   rescue ActiveRecord::StatementInvalid => e
     @query_error = e.message
     render :index
+  end
+
+  def sql_runner_execute
+    @query = params[:query].to_s
+
+    if @query.present?
+      @query_result = run_query(@query)
+    end
+
+    render :sql_runner
+  rescue ActiveRecord::StatementInvalid => e
+    @query_error = e.message
+    render :sql_runner
   end
 
   def create

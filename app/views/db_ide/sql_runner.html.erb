@@ -1,0 +1,100 @@
+<div class="db-ide" data-controller="sidebar">
+  <% if flash[:notice] %>
+    <div class="db-ide__toast db-ide__toast--success" role="status"><%= flash[:notice] %></div>
+  <% elsif flash[:alert] %>
+    <div class="db-ide__toast db-ide__toast--error" role="alert"><%= flash[:alert] %></div>
+  <% end %>
+
+  <!-- Mobile Menu Button -->
+  <button class="db-ide__menu-toggle"
+          type="button"
+          data-sidebar-target="toggle"
+          data-action="click->sidebar#toggle"
+          aria-label="Toggle navigation menu"
+          aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-sidebar-target="iconMenu" aria-hidden="true">
+      <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-sidebar-target="iconClose" style="display: none;" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+
+  <!-- Sidebar Overlay (Mobile) -->
+  <div class="db-ide__sidebar-overlay"
+       data-sidebar-target="overlay"
+       data-action="click->sidebar#close"></div>
+
+  <!-- Sidebar -->
+  <div class="db-ide__sidebar-wrapper" data-sidebar-target="drawer">
+    <aside class="db-ide__sidebar">
+      <header class="db-ide__brand">
+        <div class="db-ide__logo" aria-hidden="true">PWI</div>
+        <div>
+          <h1>Postgres Web IDE</h1>
+        </div>
+      </header>
+
+      <section class="db-ide__card">
+        <header class="db-ide__card-header">
+          <h2>Navigation</h2>
+        </header>
+
+        <ul class="db-ide__table-list">
+          <li>
+            <%= link_to "Tables", db_ide_path, 
+                        class: "db-ide__chip",
+                        data: { action: "click->sidebar#close" } %>
+          </li>
+          <li>
+            <%= link_to "SQL Runner", db_ide_sql_runner_path, 
+                        class: "db-ide__chip db-ide__chip--active",
+                        aria_current: "page",
+                        data: { action: "click->sidebar#close" } %>
+          </li>
+        </ul>
+      </section>
+    </aside>
+  </div>
+
+  <main class="db-ide__content" aria-live="polite">
+    <section class="db-ide__panel" aria-labelledby="sql-runner-heading">
+      <header class="db-ide__panel-header">
+        <div>
+          <h2 id="sql-runner-heading">SQL Runner</h2>
+          <p class="db-ide__meta">Execute custom SQL against the development database.</p>
+        </div>
+        <div class="db-ide__panel-actions">
+          <%= link_to "Back to Tables", db_ide_path, class: "db-ide__button db-ide__button--ghost" %>
+        </div>
+      </header>
+
+      <div class="db-ide__panel-body">
+        <%= form_with url: db_ide_sql_runner_execute_path, method: :post, local: true, class: "db-ide__form", data: { turbo: false } do |form| %>
+          <label for="sql-query" class="db-ide__label">Query</label>
+          <%= form.text_area :query, id: "sql-query", value: @query, rows: 12, class: "db-ide__textarea", placeholder: "SELECT * FROM users LIMIT 10;" %>
+          <div class="db-ide__actions">
+            <%= form.submit "Run query", class: "db-ide__button" %>
+          </div>
+        <% end %>
+
+        <% if @query_error.present? %>
+          <div class="db-ide__alert db-ide__alert--error" role="alert">
+            <strong>Query failed:</strong>
+            <pre><%= @query_error %></pre>
+          </div>
+        <% elsif @query_result.present? %>
+          <div class="db-ide__result" aria-live="polite">
+            <h3 class="db-ide__result-title">Result</h3>
+            <p class="db-ide__meta">
+              <strong><%= @query_result.rows.size %></strong> rows returned.
+            </p>
+            <div class="db-ide__table-wrapper">
+              <%= render partial: "table", locals: { result: @query_result } %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </section>
+  </main>
+</div>

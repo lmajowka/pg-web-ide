@@ -12,7 +12,9 @@ Rails.application.routes.draw do
   root "db_ide#index"
 
   get "db_ide", to: "db_ide#index"
+  get "db_ide/sql_runner", to: "db_ide#sql_runner"
   post "db_ide/execute", to: "db_ide#execute"
+  post "db_ide/sql_runner/execute", to: "db_ide#sql_runner_execute"
   post "db_ide/create", to: "db_ide#create"
   patch "db_ide/update", to: "db_ide#update"
   delete "db_ide/destroy", to: "db_ide#destroy"
