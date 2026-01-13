@@ -160,6 +160,38 @@ class DbIdeController < ApplicationController
     quoted_table = connection.quote_table_name(table_name)
     sql = "SELECT * FROM #{quoted_table}"
     
+    # Apply filters from URL parameters
+    conditions = []
+    values = []
+    columns_info = columns_info_for(table_name)
+    
+    params.each do |key, value|
+      if key.match(/^filter_\d+_column$/)
+        filter_index = key.match(/^filter_(\d+)_column$/)[1]
+        column = params["filter_#{filter_index}_column"]
+        operator = params["filter_#{filter_index}_operator"]
+        filter_value = params["filter_#{filter_index}_value"]
+        
+        if column.present? && operator.present? && (filter_value.present? || ['is_null', 'is_not_null'].include?(operator))
+          if valid_column?(table_name, column)
+            condition = build_filter_condition(column, operator, filter_value)
+            if condition
+              conditions << condition
+              unless ['is_null', 'is_not_null'].include?(operator)
+                column_info = columns_info.find { |col| col.name == column }
+                formatted_value = format_filter_value(operator, filter_value, column_info&.type)
+                values << formatted_value
+              end
+            end
+          end
+        end
+      end
+    end
+    
+    if conditions.any?
+      sql += " WHERE #{conditions.join(' AND ')}"
+    end
+    
     if sort_column.present? && valid_column?(table_name, sort_column)
       quoted_column = connection.quote_column_name(sort_column)
       direction = sort_direction == "desc" ? "DESC" : "ASC"
@@ -167,7 +199,12 @@ class DbIdeController < ApplicationController
     end
     
     sql += " LIMIT #{MAX_ROWS}"
-    connection.exec_query(sql)
+    
+    if values.any?
+      connection.exec_query(sanitize_sql([sql, *values]))
+    else
+      connection.exec_query(sql)
+    end
   end
 
   def load_row(table_name, primary_key, row_id)
@@ -266,6 +303,86 @@ class DbIdeController < ApplicationController
     return false unless table_name && column_name
     
     columns_info_for(table_name).any? { |col| col.name == column_name }
+  end
+
+  def build_filter_condition(column, operator, value)
+    quoted_column = connection.quote_column_name(column)
+    column_info = columns_info_for(params[:table]).find { |col| col.name == column }
+    
+    case operator
+    when 'contains'
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} ILIKE ?"
+      else
+        # For non-string columns, use equals instead
+        "#{quoted_column} = ?"
+      end
+    when 'not_contains'
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} NOT ILIKE ?"
+      else
+        "#{quoted_column} != ?"
+      end
+    when 'equals'
+      "#{quoted_column} = ?"
+    when 'not_equals'
+      "#{quoted_column} != ?"
+    when 'starts_with'
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} ILIKE ?"
+      else
+        "#{quoted_column} = ?"
+      end
+    when 'ends_with'
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} ILIKE ?"
+      else
+        "#{quoted_column} = ?"
+      end
+    when 'greater_than'
+      "#{quoted_column} > ?"
+    when 'less_than'
+      "#{quoted_column} < ?"
+    when 'is_null'
+      "#{quoted_column} IS NULL"
+    when 'is_not_null'
+      "#{quoted_column} IS NOT NULL"
+    else
+      nil
+    end
+  end
+
+  def format_filter_value(operator, value, column_type)
+    case operator
+    when 'contains', 'not_contains'
+      if column_type == :string || column_type == :text
+        "%#{value}%"
+      else
+        value
+      end
+    when 'starts_with'
+      if column_type == :string || column_type == :text
+        "#{value}%"
+      else
+        value
+      end
+    when 'ends_with'
+      if column_type == :string || column_type == :text
+        "%#{value}"
+      else
+        value
+      end
+    else
+      value
+    end
+  end
+
+  def sanitize_sql(condition)
+    if condition.is_a?(Array)
+      ActiveRecord::Base.sanitize_sql(condition)
+    else
+      condition
+    end
   end
 
   def connection

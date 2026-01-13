@@ -156,18 +156,66 @@
 
       <div class="db-ide__panel-body">
         <% if @table_result.present? %>
-          <div class="db-ide__table-wrapper" data-table-view-target="wrapper" data-view="table">
-            <%= render partial: "table", locals: {
-              result: @table_result,
-              table_name: @selected_table,
-              primary_key: @table_primary_key,
-              columns_info: @table_columns_info,
-              editable_row_id: @editable_row_id,
-              editable_row: @editable_row,
-              sort_column: @sort_column,
-              sort_direction: @sort_direction
-            } %>
+          <%# Table Filters %>
+          <div class="db-ide__filters" data-controller="table-filter" 
+               data-table-filter-columns-value="<%= @table_result.columns.to_json %>"
+               data-table-filter-table-value="<%= @selected_table %>">
+            <div class="db-ide__filters-header">
+              <div class="db-ide__filters-title">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 4h18M7 8h10M5 12h14M8 16h8M6 20h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Filters
+              </div>
+              <button type="button" class="db-ide__add-filter-btn" 
+                      data-action="click->table-filter#addFilter"
+                      aria-label="Add filter">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+                Add Filter
+              </button>
+            </div>
+            
+            <div class="db-ide__filters-list" data-table-filter-target="filtersContainer">
+              <%# Filters will be dynamically added here %>
+            </div>
           </div>
+
+          <% if @table_result.rows.empty? %>
+            <%# Check if there are filters applied %>
+            <% has_filters = params.keys.any? { |k| k.start_with?('filter_') } %>
+            <% if has_filters %>
+              <div class="db-ide__no-results">
+                <div class="no-results-icon">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 12h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <h3>No results found</h3>
+                <p>Your filters didn't match any records. Try adjusting your filters or clear them to see all data.</p>
+                <%= link_to "Clear all filters", db_ide_path(table: @selected_table), class: "db-ide__button db-ide__button--ghost" %>
+              </div>
+            <% else %>
+              <div class="db-ide__empty">
+                <p>This table appears to be empty.</p>
+              </div>
+            <% end %>
+          <% else %>
+            <div class="db-ide__table-wrapper" data-table-view-target="wrapper" data-view="table" data-table-filter-target="tableWrapper">
+              <%= render partial: "table", locals: {
+                result: @table_result,
+                table_name: @selected_table,
+                primary_key: @table_primary_key,
+                columns_info: @table_columns_info,
+                editable_row_id: @editable_row_id,
+                editable_row: @editable_row,
+                sort_column: @sort_column,
+                sort_direction: @sort_direction
+              } %>
+            </div>
+          <% end %>
         <% else %>
           <div class="db-ide__empty">
             <p>No data available for this table.</p>
