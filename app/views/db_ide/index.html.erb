@@ -167,14 +167,24 @@
                 </svg>
                 Filters
               </div>
-              <button type="button" class="db-ide__add-filter-btn" 
-                      data-action="click->table-filter#addFilter"
-                      aria-label="Add filter">
-                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-                Add Filter
-              </button>
+              <div class="db-ide__filters-actions">
+                <button type="button" class="db-ide__add-filter-btn" 
+                        data-action="click->table-filter#addFilter"
+                        aria-label="Add filter">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                  Add Filter
+                </button>
+                <button type="button" class="db-ide__apply-filters-btn" 
+                        data-action="click->table-filter#applyFilters"
+                        aria-label="Apply filters">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Apply Filters
+                </button>
+              </div>
             </div>
             
             <div class="db-ide__filters-list" data-table-filter-target="filtersContainer">

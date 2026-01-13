@@ -117,11 +117,8 @@ export default class extends Controller {
   }
 
   onFilterChange() {
-    // Debounce filter changes
-    clearTimeout(this.filterTimeout)
-    this.filterTimeout = setTimeout(() => {
-      this.applyFilters()
-    }, 500)
+    // Don't auto-apply filters on change - let user press Enter or click Apply
+    // This gives users time to set up their filters before applying them
   }
 
   onKeyDown(event) {

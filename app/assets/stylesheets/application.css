@@ -1141,6 +1141,12 @@ body {
   gap: var(--space-md);
 }
 
+.db-ide__filters-actions {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
 .db-ide__filters-title {
   display: flex;
   align-items: center;
@@ -1181,6 +1187,34 @@ body {
 }
 
 .db-ide__add-filter-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.db-ide__apply-filters-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--neon-green);
+  background: rgba(57, 255, 20, 0.05);
+  color: var(--neon-green);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.db-ide__apply-filters-btn:hover {
+  background: rgba(57, 255, 20, 0.1);
+  border-color: var(--neon-green);
+  color: var(--neon-green);
+  box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+  transform: translateY(-1px);
+}
+
+.db-ide__apply-filters-btn svg {
   width: 16px;
   height: 16px;
 }
@@ -1359,6 +1393,17 @@ body {
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-sm);
+  }
+
+  .db-ide__filters-actions {
+    justify-content: stretch;
+    gap: var(--space-sm);
+  }
+
+  .db-ide__add-filter-btn,
+  .db-ide__apply-filters-btn {
+    flex: 1;
+    justify-content: center;
   }
 
   .filter-fields {
