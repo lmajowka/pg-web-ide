@@ -1,41 +1,64 @@
-<div class="db-ide">
+<div class="db-ide" data-controller="sidebar">
   <% if flash[:notice] %>
     <div class="db-ide__toast db-ide__toast--success" role="status"><%= flash[:notice] %></div>
   <% elsif flash[:alert] %>
     <div class="db-ide__toast db-ide__toast--error" role="alert"><%= flash[:alert] %></div>
   <% end %>
 
-  <aside class="db-ide__sidebar">
-    <header class="db-ide__brand">
-      <div class="db-ide__logo" aria-hidden="true">PWI</div>
-      <div>
-        <h1>Postgres Web IDE</h1>
-        
-      </div>
-    </header>
+  <!-- Mobile Menu Button -->
+  <button class="db-ide__menu-toggle"
+          type="button"
+          data-sidebar-target="toggle"
+          data-action="click->sidebar#toggle"
+          aria-label="Toggle navigation menu"
+          aria-expanded="false">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-sidebar-target="iconMenu" aria-hidden="true">
+      <path d="M3 12h18M3 6h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" data-sidebar-target="iconClose" style="display: none;" aria-hidden="true">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
 
-    <section class="db-ide__card">
-      <header class="db-ide__card-header">
-        <h2>Tables</h2>
-        <p><%= pluralize(@tables.size, "table") %></p>
+  <!-- Sidebar Overlay (Mobile) -->
+  <div class="db-ide__sidebar-overlay"
+       data-sidebar-target="overlay"
+       data-action="click->sidebar#close"></div>
+
+  <!-- Sidebar -->
+  <div class="db-ide__sidebar-wrapper" data-sidebar-target="drawer">
+    <aside class="db-ide__sidebar">
+      <header class="db-ide__brand">
+        <div class="db-ide__logo" aria-hidden="true">PWI</div>
+        <div>
+          <h1>Postgres Web IDE</h1>
+        </div>
       </header>
 
-      <ul class="db-ide__table-list">
-        <% @tables.each do |table| %>
-          <% active = table == @selected_table %>
-          <li>
-            <%= link_to table,
-                        db_ide_path(table: table),
-                        class: "db-ide__chip#{" db-ide__chip--active" if active}",
-                        aria_current: (active ? "page" : nil) %>
-          </li>
-        <% end %>
-      </ul>
-    </section>
-  </aside>
+      <section class="db-ide__card">
+        <header class="db-ide__card-header">
+          <h2>Tables</h2>
+          <p><%= pluralize(@tables.size, "table") %></p>
+        </header>
+
+        <ul class="db-ide__table-list">
+          <% @tables.each do |table| %>
+            <% active = table == @selected_table %>
+            <li>
+              <%= link_to table,
+                          db_ide_path(table: table),
+                          class: "db-ide__chip#{" db-ide__chip--active" if active}",
+                          aria_current: (active ? "page" : nil),
+                          data: { action: "click->sidebar#close" } %>
+            </li>
+          <% end %>
+        </ul>
+      </section>
+    </aside>
+  </div>
 
   <main class="db-ide__content" aria-live="polite">
-    <section class="db-ide__panel" aria-labelledby="table-preview-heading">
+    <section class="db-ide__panel" aria-labelledby="table-preview-heading" data-controller="table-view">
       <header class="db-ide__panel-header">
         <div>
           <h2 id="table-preview-heading"><%= @selected_table || "No table selected" %></h2>
@@ -46,6 +69,35 @@
           <% end %>
         </div>
         <div class="db-ide__panel-actions">
+          <% if @table_result.present? %>
+            <!-- View Toggle (Mobile) -->
+            <div class="db-ide__view-toggle" role="group" aria-label="View mode">
+              <button type="button"
+                      class="db-ide__view-toggle-btn is-active"
+                      data-table-view-target="tableBtn"
+                      data-action="click->table-view#showTable"
+                      aria-label="Table view"
+                      aria-pressed="true">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M3 3h18v18H3V3z" stroke="currentColor" stroke-width="2"/>
+                  <path d="M3 9h18M3 15h18M9 3v18M15 3v18" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+              <button type="button"
+                      class="db-ide__view-toggle-btn"
+                      data-table-view-target="cardBtn"
+                      data-action="click->table-view#showCards"
+                      aria-label="Card view"
+                      aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          <% end %>
           <% if @selected_table.present? %>
             <% if @show_new_form %>
               <%= link_to "Close new record", db_ide_path(table: @selected_table), class: "db-ide__button db-ide__button--ghost" %>
@@ -59,7 +111,7 @@
 
       <div class="db-ide__panel-body">
         <% if @table_result.present? %>
-          <div class="db-ide__table-wrapper">
+          <div class="db-ide__table-wrapper" data-table-view-target="wrapper" data-view="table">
             <%= render partial: "table", locals: {
               result: @table_result,
               table_name: @selected_table,
@@ -135,7 +187,7 @@
         <%= form_with url: db_ide_execute_path, method: :post, local: true, class: "db-ide__form", data: { turbo: false } do |form| %>
           <%= hidden_field_tag :table, @selected_table %>
           <label for="sql-query" class="db-ide__label">Query</label>
-          <%= form.text_area :query, id: "sql-query", value: @query, rows: 8, class: "db-ide__textarea" %>
+          <%= form.text_area :query, id: "sql-query", value: @query, rows: 8, class: "db-ide__textarea", placeholder: "SELECT * FROM users LIMIT 10;" %>
           <div class="db-ide__actions">
             <%= form.submit "Run query", class: "db-ide__button" %>
           </div>

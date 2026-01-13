@@ -5,6 +5,7 @@
 
 <% editable = defined?(table_name) && primary_key.present? %>
 
+<!-- Table View -->
 <table class="db-ide__table">
   <thead>
     <tr>
@@ -12,7 +13,7 @@
         <th class="db-ide__table-header db-ide__table-header--actions">Actions</th>
       <% end %>
       <% result.columns.each do |column| %>
-        <% 
+        <%
           is_sorted = defined?(sort_column) && sort_column == column
           is_desc = defined?(sort_direction) && sort_direction == "desc"
           next_direction = is_sorted && !is_desc ? "desc" : "asc"
@@ -111,5 +112,48 @@
     <% end %>
   </tbody>
 </table>
+
+<!-- Card View (Mobile) -->
+<div class="db-ide__cards">
+  <% result.rows.each do |row_values| %>
+    <% row_hash = result.columns.zip(row_values).to_h %>
+    <% row_id = editable ? row_hash[primary_key] : nil %>
+    <% is_editing = editable && defined?(editable_row_id) && editable_row_id.present? && row_id.present? && row_id.to_s == editable_row_id.to_s %>
+
+    <div class="db-ide__card-row <%= "db-ide__card-row--active" if is_editing %>">
+      <div class="db-ide__card-fields">
+        <% result.columns.each do |column| %>
+          <% value = row_hash[column] %>
+          <% display_value = case value
+                            when Time, ActiveSupport::TimeWithZone
+                              value.utc.strftime("%Y-%m-%d %H:%M:%S UTC")
+                            else
+                              value
+                            end %>
+          <div class="db-ide__card-field">
+            <span class="db-ide__card-field-name"><%= column %></span>
+            <span class="db-ide__card-field-value"><%= display_value.presence || "—" %></span>
+          </div>
+        <% end %>
+      </div>
+
+      <% if editable && row_id.present? %>
+        <div class="db-ide__card-actions">
+          <% if is_editing %>
+            <%= link_to "Cancel", db_ide_path(table: table_name), class: "db-ide__button db-ide__button--ghost" %>
+          <% else %>
+            <%= link_to "Edit", db_ide_path(table: table_name, edit: row_id), class: "db-ide__button db-ide__button--ghost" %>
+          <% end %>
+          <%= button_to "Delete",
+                        db_ide_destroy_path,
+                        method: :delete,
+                        params: { table: table_name, id: row_id },
+                        class: "db-ide__button db-ide__button--danger",
+                        form: { data: { turbo_confirm: "Delete this row? This action cannot be undone." } } %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>
 
 <p class="db-ide__table-meta">Rows: <%= result.rows.size %></p>
