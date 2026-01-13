@@ -298,11 +298,13 @@ body {
   backdrop-filter: blur(4px);
   z-index: var(--z-overlay);
   opacity: 0;
+  pointer-events: none;
   transition: opacity var(--transition-normal);
 }
 
 .db-ide__sidebar-overlay.is-active {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .db-ide__sidebar {
@@ -494,6 +496,8 @@ body {
   backdrop-filter: blur(20px);
   overflow: hidden;
   animation: slideInUp 0.5s ease-out both;
+  position: relative;
+  z-index: 2;
 }
 
 .db-ide__panel:nth-child(1) { animation-delay: 0.1s; }
@@ -1124,6 +1128,10 @@ body {
     display: block;
     padding: var(--space-md);
     padding-top: 80px; /* Space for menu button */
+  }
+
+  .db-ide::before {
+    z-index: -1; /* Move scanline behind content on mobile */
   }
 
   .db-ide__menu-toggle {
