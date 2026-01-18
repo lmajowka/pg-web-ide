@@ -37,6 +37,18 @@
 
       <section class="db-ide__card">
         <header class="db-ide__card-header">
+          <h2>Database</h2>
+        </header>
+        <%= form_with url: db_ide_switch_database_path, method: :post, class: "db-ide__db-selector" do |f| %>
+          <%= f.select :database,
+                       options_for_select(fetch_available_databases, current_database_name),
+                       {},
+                       { class: "db-ide__select", onchange: "this.form.submit()" } %>
+        <% end %>
+      </section>
+
+      <section class="db-ide__card">
+        <header class="db-ide__card-header">
           <h2>Tables</h2>
           <p><%= pluralize(@tables.size, "table") %></p>
         </header>

@@ -410,6 +410,47 @@ body {
   color: var(--text-muted);
 }
 
+/* ============================================
+   DATABASE SELECTOR
+   ============================================ */
+
+.db-ide__db-selector {
+  margin-top: 0;
+}
+
+.db-ide__select {
+  width: 100%;
+  padding: 0.6rem 2.5rem 0.6rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2300f0ff' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.db-ide__select:hover {
+  border-color: rgba(0, 240, 255, 0.5);
+}
+
+.db-ide__select:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.15), 0 0 20px rgba(0, 240, 255, 0.1);
+}
+
+.db-ide__select option {
+  background: var(--bg-panel);
+  color: var(--text-primary);
+  padding: 0.5rem;
+}
+
 .db-ide__table-list {
   display: flex;
   flex-direction: column;
