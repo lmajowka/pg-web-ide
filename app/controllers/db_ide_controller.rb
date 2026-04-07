@@ -2,9 +2,26 @@ class DbIdeController < ApplicationController
   MAX_ROWS = 50
 
   before_action :ensure_development!
+  before_action :setup_database_connection
 
   def index
     prepare_state
+  end
+
+  def switch_database
+    database = params[:database].to_s
+    available = fetch_available_databases
+
+    if available.include?(database)
+      session[:selected_database] = database
+      redirect_to db_ide_path, notice: "Switched to database: #{database}"
+    else
+      redirect_to db_ide_path, alert: "Unknown database."
+    end
+  end
+
+  def sql_runner
+    @query ||= default_query(nil)
   end
 
   def execute
@@ -19,6 +36,42 @@ class DbIdeController < ApplicationController
   rescue ActiveRecord::StatementInvalid => e
     @query_error = e.message
     render :index
+  end
+
+  def sql_runner_execute
+    @query = params[:query].to_s
+
+    if @query.present?
+      @query_result = run_query(@query)
+    end
+
+    render :sql_runner
+  rescue ActiveRecord::StatementInvalid => e
+    @query_error = e.message
+    render :sql_runner
+  end
+
+  def sql_agent
+    @agent_prompt = params[:agent_prompt].to_s.strip
+
+    if @agent_prompt.blank?
+      redirect_to db_ide_sql_runner_path
+      return
+    end
+
+    service = SqlAgentService.new(connection)
+    result = service.generate_sql(@agent_prompt)
+
+    if result[:error]
+      @agent_error = result[:error]
+    else
+      @query = result[:sql]
+    end
+
+    render :sql_runner
+  rescue => e
+    @agent_error = e.message
+    render :sql_runner
   end
 
   def create
@@ -134,7 +187,7 @@ class DbIdeController < ApplicationController
 
   def fetch_tables
     connection.tables
-    #.reject { |name| name.start_with?("pg_") || name == "schema_migrations" }
+    # .reject { |name| name.start_with?("pg_") || name == "schema_migrations" }
   end
 
   def load_table_rows(table_name, sort_column = nil, sort_direction = "asc")
@@ -142,15 +195,52 @@ class DbIdeController < ApplicationController
 
     quoted_table = connection.quote_table_name(table_name)
     sql = "SELECT * FROM #{quoted_table}"
-    
+
+    # Apply filters from URL parameters
+    conditions = []
+    values = []
+    columns_info = columns_info_for(table_name)
+
+    params.each do |key, value|
+      if key.match(/^filter_\d+_column$/)
+        filter_index = key.match(/^filter_(\d+)_column$/)[1]
+        column = params["filter_#{filter_index}_column"]
+        operator = params["filter_#{filter_index}_operator"]
+        filter_value = params["filter_#{filter_index}_value"]
+
+        if column.present? && operator.present? && (filter_value.present? || [ "is_null", "is_not_null" ].include?(operator))
+          if valid_column?(table_name, column)
+            condition = build_filter_condition(column, operator, filter_value)
+            if condition
+              conditions << condition
+              unless [ "is_null", "is_not_null" ].include?(operator)
+                column_info = columns_info.find { |col| col.name == column }
+                formatted_value = format_filter_value(operator, filter_value, column_info&.type)
+                values << formatted_value
+              end
+            end
+          end
+        end
+      end
+    end
+
+    if conditions.any?
+      sql += " WHERE #{conditions.join(' AND ')}"
+    end
+
     if sort_column.present? && valid_column?(table_name, sort_column)
       quoted_column = connection.quote_column_name(sort_column)
       direction = sort_direction == "desc" ? "DESC" : "ASC"
       sql += " ORDER BY #{quoted_column} #{direction}"
     end
-    
+
     sql += " LIMIT #{MAX_ROWS}"
-    connection.exec_query(sql)
+
+    if values.any?
+      connection.exec_query(sanitize_sql([ sql, *values ]))
+    else
+      connection.exec_query(sql)
+    end
   end
 
   def load_row(table_name, primary_key, row_id)
@@ -247,11 +337,122 @@ class DbIdeController < ApplicationController
 
   def valid_column?(table_name, column_name)
     return false unless table_name && column_name
-    
+
     columns_info_for(table_name).any? { |col| col.name == column_name }
+  end
+
+  def build_filter_condition(column, operator, value)
+    quoted_column = connection.quote_column_name(column)
+    column_info = columns_info_for(params[:table]).find { |col| col.name == column }
+
+    case operator
+    when "contains"
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} ILIKE ?"
+      else
+        # For non-string columns, use equals instead
+        "#{quoted_column} = ?"
+      end
+    when "not_contains"
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} NOT ILIKE ?"
+      else
+        "#{quoted_column} != ?"
+      end
+    when "equals"
+      "#{quoted_column} = ?"
+    when "not_equals"
+      "#{quoted_column} != ?"
+    when "starts_with"
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} ILIKE ?"
+      else
+        "#{quoted_column} = ?"
+      end
+    when "ends_with"
+      if column_info&.type == :string || column_info&.type == :text
+        "#{quoted_column} ILIKE ?"
+      else
+        "#{quoted_column} = ?"
+      end
+    when "greater_than"
+      "#{quoted_column} > ?"
+    when "less_than"
+      "#{quoted_column} < ?"
+    when "is_null"
+      "#{quoted_column} IS NULL"
+    when "is_not_null"
+      "#{quoted_column} IS NOT NULL"
+    else
+      nil
+    end
+  end
+
+  def format_filter_value(operator, value, column_type)
+    case operator
+    when "contains", "not_contains"
+      if column_type == :string || column_type == :text
+        "%#{value}%"
+      else
+        value
+      end
+    when "starts_with"
+      if column_type == :string || column_type == :text
+        "#{value}%"
+      else
+        value
+      end
+    when "ends_with"
+      if column_type == :string || column_type == :text
+        "%#{value}"
+      else
+        value
+      end
+    else
+      value
+    end
+  end
+
+  def sanitize_sql(condition)
+    if condition.is_a?(Array)
+      ActiveRecord::Base.sanitize_sql(condition)
+    else
+      condition
+    end
   end
 
   def connection
     ActiveRecord::Base.connection
   end
+
+  def setup_database_connection
+    selected_db = session[:selected_database] || ENV.fetch("PG_DB", "")
+    return if selected_db.blank?
+
+    current_db = connection.current_database rescue nil
+    return if current_db == selected_db
+
+    ActiveRecord::Base.establish_connection(
+      adapter: "postgresql",
+      database: selected_db,
+      username: ENV.fetch("PG_USER", ENV["USER"]),
+      password: ENV.fetch("PG_PASSWORD", ""),
+      host: ENV.fetch("PG_HOST", "localhost"),
+      port: ENV.fetch("PG_PORT", 5432)
+    )
+  end
+
+  def fetch_available_databases
+    # Query PostgreSQL for all non-template databases
+    result = connection.exec_query(
+      "SELECT datname FROM pg_database WHERE datistemplate = false ORDER BY datname"
+    )
+    result.rows.flatten
+  end
+
+  def current_database_name
+    session[:selected_database] || ENV.fetch("PG_DB", connection.current_database)
+  end
+
+  helper_method :fetch_available_databases, :current_database_name
 end
