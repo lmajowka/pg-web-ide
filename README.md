@@ -29,6 +29,7 @@ PG_USER=your_pg_user
 PG_PASSWORD=your_pg_password
 PG_HOST=localhost
 PG_PORT=5432
+OPENAI_API_KEY=your_openai_api_key
 ```
 
 ## Running
