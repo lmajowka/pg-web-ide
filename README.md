@@ -1,24 +1,69 @@
-# README
+# Postgres Web IDE
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A Rails 8 web interface for browsing and editing PostgreSQL database tables in the browser. Intended for development use only.
 
-Things you may want to cover:
+## Requirements
 
-* Ruby version
+- Ruby 3.4.5
+- PostgreSQL
 
-* System dependencies
+## Setup
 
-* Configuration
+1. Clone the repo and install dependencies:
 
-* Database creation
+```bash
+./bin/setup
+```
 
-* Database initialization
+2. Copy the example environment file and configure your database connection:
 
-* How to run the test suite
+```bash
+cp .env.example .env
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+Edit `.env` with your PostgreSQL credentials:
 
-* Deployment instructions
+```env
+PG_DB=your_database_name
+PG_USER=your_pg_user
+PG_PASSWORD=your_pg_password
+PG_HOST=localhost
+PG_PORT=5432
+```
 
-* ...
+## Running
+
+```bash
+./bin/dev
+```
+
+The app runs at [http://localhost:3000](http://localhost:3000).
+
+## Features
+
+- Browse any table in the connected PostgreSQL database
+- Sort, filter, and paginate rows
+- Create, edit, and delete rows
+- Execute raw SQL queries
+- Switch between multiple databases at runtime
+
+## Testing
+
+```bash
+bin/rails test          # Unit tests
+bin/rails test:system   # System/E2E tests
+```
+
+## Linting & Security
+
+```bash
+./bin/rubocop           # Check code style
+./bin/rubocop -A        # Auto-fix style issues
+./bin/brakeman          # Security static analysis
+./bin/bundler-audit     # Gem vulnerability check
+```
+
+## Notes
+
+- Access is blocked in non-development environments.
+- All SQL operations use parameterized queries and Rails' quoting helpers to prevent injection.
