@@ -70,6 +70,34 @@
       </header>
 
       <div class="db-ide__panel-body">
+        <!-- AI Agent Section -->
+        <details class="db-ide__agent" <%= @agent_prompt.present? || @agent_error.present? ? "open" : "" %>>
+          <summary class="db-ide__agent-summary">
+            <span class="db-ide__agent-icon" aria-hidden="true">&#10024;</span>
+            Generate SQL with AI
+          </summary>
+
+          <div class="db-ide__agent-body">
+            <%= form_with url: db_ide_sql_agent_path, method: :post, local: true, class: "db-ide__form", data: { turbo: false } do |form| %>
+              <label for="agent-prompt" class="db-ide__label">Describe what you want to query</label>
+              <%= form.text_area :agent_prompt, id: "agent-prompt", value: @agent_prompt,
+                    rows: 3, class: "db-ide__textarea",
+                    placeholder: "e.g. Give me the total sum of all transactions in the last month, grouped by category" %>
+              <div class="db-ide__actions">
+                <%= form.submit "Generate SQL", class: "db-ide__button db-ide__button--agent" %>
+              </div>
+            <% end %>
+
+            <% if @agent_error.present? %>
+              <div class="db-ide__alert db-ide__alert--error" role="alert">
+                <strong>Agent error:</strong>
+                <pre><%= @agent_error %></pre>
+              </div>
+            <% end %>
+          </div>
+        </details>
+
+        <!-- SQL Query Form -->
         <%= form_with url: db_ide_sql_runner_execute_path, method: :post, local: true, class: "db-ide__form", data: { turbo: false } do |form| %>
           <label for="sql-query" class="db-ide__label">Query</label>
           <%= form.text_area :query, id: "sql-query", value: @query, rows: 12, class: "db-ide__textarea", placeholder: "SELECT * FROM users LIMIT 10;" %>

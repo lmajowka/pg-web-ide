@@ -1118,6 +1118,71 @@ body {
    RESULTS
    ============================================ */
 
+/* ============================================
+   AI AGENT
+   ============================================ */
+
+.db-ide__agent {
+  margin-bottom: var(--space-lg);
+  border: 1px solid rgba(191, 90, 242, 0.3);
+  border-radius: var(--radius-md);
+  background: rgba(191, 90, 242, 0.05);
+  overflow: hidden;
+}
+
+.db-ide__agent-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--neon-purple);
+  user-select: none;
+  list-style: none;
+}
+
+.db-ide__agent-summary::-webkit-details-marker {
+  display: none;
+}
+
+.db-ide__agent-summary::after {
+  content: "▼";
+  margin-left: auto;
+  font-size: 0.7rem;
+  transition: transform var(--transition-fast);
+}
+
+.db-ide__agent[open] .db-ide__agent-summary::after {
+  transform: rotate(180deg);
+}
+
+.db-ide__agent-summary:hover {
+  color: var(--neon-cyan);
+}
+
+.db-ide__agent-icon {
+  font-size: 1rem;
+}
+
+.db-ide__agent-body {
+  padding: 0 var(--space-lg) var(--space-lg);
+}
+
+.db-ide__button--agent {
+  background: linear-gradient(135deg, rgba(191, 90, 242, 0.2) 0%, rgba(191, 90, 242, 0.1) 100%);
+  border-color: rgba(191, 90, 242, 0.5);
+  color: var(--neon-purple);
+}
+
+.db-ide__button--agent:hover {
+  background: linear-gradient(135deg, rgba(191, 90, 242, 0.35) 0%, rgba(191, 90, 242, 0.2) 100%);
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 15px rgba(191, 90, 242, 0.4);
+  color: var(--text-primary);
+}
+
 .db-ide__result {
   margin-top: var(--space-lg);
 }

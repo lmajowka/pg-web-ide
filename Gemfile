@@ -35,6 +35,7 @@ gem "bootsnap", require: false
 gem "kamal", require: false
 
 gem "dotenv-rails", groups: %i[ development test ], require: "dotenv/load"
+gem "openai"
 
 # Add HTTP asset caching/compression and X-Sendfile acceleration to Puma [https://github.com/basecamp/thruster/]
 gem "thruster", require: false

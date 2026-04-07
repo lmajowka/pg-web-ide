@@ -51,6 +51,29 @@ class DbIdeController < ApplicationController
     render :sql_runner
   end
 
+  def sql_agent
+    @agent_prompt = params[:agent_prompt].to_s.strip
+
+    if @agent_prompt.blank?
+      redirect_to db_ide_sql_runner_path
+      return
+    end
+
+    service = SqlAgentService.new(connection)
+    result = service.generate_sql(@agent_prompt)
+
+    if result[:error]
+      @agent_error = result[:error]
+    else
+      @query = result[:sql]
+    end
+
+    render :sql_runner
+  rescue => e
+    @agent_error = e.message
+    render :sql_runner
+  end
+
   def create
     table = params[:table].to_s
 
