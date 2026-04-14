@@ -1,6 +1,6 @@
 # Postgres Web IDE
 
-A Rails 8 web interface for browsing and editing PostgreSQL database tables in the browser. Intended for development use only.
+A modern Rails 8 web interface for browsing and editing PostgreSQL databases. Features table browsing, CRUD operations, SQL query runner, and AI-powered query generation. Built for development environments with security-first design.
 
 ## Requirements
 
